@@ -28,8 +28,8 @@ for _ in range(20):
 # Assign tasks to 15 users
 for user_id in user_ids[:15]:
     for i in range(5):
-        title = fake.sentence(nb_words=3)
-        description = fake.text()
+        title = fake.sentence(nb_words=2)
+        description = fake.text(nb_words=3)
         status_id = fake.random_int(min=1, max=3)
         cursor.execute(
             "INSERT INTO tasks (title, description, status_id, user_id) VALUES (%s, %s, %s, %s)",

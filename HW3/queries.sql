@@ -1,41 +1,78 @@
--- Get all tasks of a specific user
-SELECT * FROM tasks WHERE user_id = 1;
+-- 1. Отримати всі завдання певного користувача
+SELECT *
+FROM tasks
+WHERE user_id = 1;
 
--- Get tasks by status
-SELECT * FROM tasks WHERE status_id = (SELECT id FROM status WHERE name = 'new');
+-- 2. Вибрати завдання за певним статусом
+SELECT *
+FROM tasks
+WHERE status_id = (SELECT id FROM status WHERE name = 'new');
 
--- Update task status
-UPDATE tasks SET status_id = (SELECT id FROM status WHERE name = 'in progress') WHERE id = 1;
+-- 3. Оновити статус конкретного завдання
+UPDATE tasks
+SET status_id = (SELECT id FROM status WHERE name = 'in progress')
+WHERE id = 1;
 
--- Get users with no tasks
-SELECT * FROM users WHERE id NOT IN (SELECT user_id FROM tasks);
+-- 4. Отримати список користувачів, які не мають жодного завдання
+SELECT fullname, email
+FROM users
+WHERE id NOT IN (
+    SELECT DISTINCT user_id
+    FROM tasks
+);
 
--- Add a new task for a user
-INSERT INTO tasks (title, description, status_id, user_id) VALUES ('New Task', 'Task description', 1, 1);
+-- 5. Додати нове завдання для конкретного користувача
+INSERT INTO tasks (title, description, status_id, user_id)
+VALUES ('New Task', 'Task description', (SELECT id FROM status WHERE name = 'new'), <user_id>);
 
--- Get all unfinished tasks
-SELECT * FROM tasks WHERE status_id != (SELECT id FROM status WHERE name = 'completed');
+-- 6. Отримати всі завдання, які ще не завершено
+SELECT *
+FROM tasks
+WHERE status_id != (SELECT id FROM status WHERE name = 'completed');
 
--- Delete a specific task
-DELETE FROM tasks WHERE id = 1;
+-- 7. Видалити конкретне завдання та повернути його назву
+WITH deleted AS (
+    DELETE FROM tasks
+    WHERE id = 2
+    RETURNING title
+)
+SELECT title FROM deleted;
 
--- Find users by email
-SELECT * FROM users WHERE email LIKE '%example.com';
+-- 8. Знайти користувачів з певною електронною поштою
+SELECT *
+FROM users
+WHERE email LIKE '%@example.com';
 
--- Update user name
-UPDATE users SET fullname = 'New Name' WHERE id = 1;
+-- 9. Оновити ім'я користувача
+UPDATE users
+SET fullname = 'New Name'
+WHERE id = 2;
 
--- Get task count by status
-SELECT status.name, COUNT(tasks.id) FROM tasks JOIN status ON tasks.status_id = status.id GROUP BY status.name;
+-- 10. Отримати кількість завдань для кожного статусу
+SELECT s.name AS status, COUNT(t.id) AS task_count
+FROM tasks t
+JOIN status s ON t.status_id = s.id
+GROUP BY s.name;
 
--- Get tasks by user email domain
-SELECT tasks.* FROM tasks JOIN users ON tasks.user_id = users.id WHERE users.email LIKE '%example.com';
+-- 11. Отримати завдання, які призначені користувачам з певною доменною частиною електронної пошти
+SELECT t.*
+FROM tasks t
+JOIN users u ON t.user_id = u.id
+WHERE u.email LIKE '%@example.com';
 
--- Get tasks with no description
-SELECT * FROM tasks WHERE description IS NULL;
+-- 12. Отримати список завдань, що не мають опису
+SELECT *
+FROM tasks
+WHERE description IS NULL OR description = '';
 
--- Get users and their tasks with status 'in progress'
-SELECT users.fullname, tasks.* FROM users JOIN tasks ON users.id = tasks.user_id WHERE tasks.status_id = (SELECT id FROM status WHERE name = 'in progress');
+-- 13. Вибрати користувачів та їхні завдання, які є у статусі 'in progress'
+SELECT u.fullname, t.title, t.description
+FROM users u
+JOIN tasks t ON u.id = t.user_id
+WHERE t.status_id = (SELECT id FROM status WHERE name = 'in progress');
 
--- Get users and their task counts
-SELECT users.fullname, COUNT(tasks.id) FROM users LEFT JOIN tasks ON users.id = tasks.user_id GROUP BY users.fullname;
+-- 14. Отримати користувачів та кількість їхніх завдань
+SELECT u.fullname, COUNT(t.id) AS task_count
+FROM users u
+LEFT JOIN tasks t ON u.id = t.user_id
+GROUP BY u.fullname;
