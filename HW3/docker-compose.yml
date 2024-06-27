@@ -11,3 +11,13 @@ services:
       - ./create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
     ports:
       - "5432:5432"
+
+  app:
+    build: .
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://user:password@db:5432/hw3
+    volumes:
+      - .:/app
+    command: sh -c 'until pg_isready -h db -p 5432; do sleep 1; done; python seed.py'

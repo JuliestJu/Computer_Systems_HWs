@@ -1,5 +1,9 @@
 -- create_tables.sql
 
+DROP TABLE IF EXISTS tasks CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS status CASCADE;
+
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     fullname VARCHAR(100),

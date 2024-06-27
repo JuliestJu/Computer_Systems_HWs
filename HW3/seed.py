@@ -1,0 +1,37 @@
+from faker import Faker
+import psycopg2
+
+fake = Faker()
+
+conn = psycopg2.connect(
+    dbname='hw3',
+    user='user',
+    password='password',
+    host='db'
+)
+cursor = conn.cursor()
+
+# Insert statuses
+statuses = ['new', 'in progress', 'completed']
+for status in statuses:
+    cursor.execute("INSERT INTO status (name) VALUES (%s) ON CONFLICT (name) DO NOTHING", (status,))
+
+# Insert users and tasks
+for _ in range(10):
+    fullname = fake.name()
+    email = fake.email()
+    cursor.execute("INSERT INTO users (fullname, email) VALUES (%s, %s) RETURNING id", (fullname, email))
+    user_id = cursor.fetchone()[0]
+
+    for i in range(5):
+        title = f"title {i}"
+        description = f"Description {i}"
+        status_id = fake.random_int(min=1, max=3)
+        cursor.execute(
+            "INSERT INTO tasks (title, description, status_id, user_id) VALUES (%s, %s, %s, %s)",
+            (title, description, status_id, user_id)
+        )
+
+conn.commit()
+cursor.close()
+conn.close()
