@@ -17,15 +17,19 @@ for status in statuses:
     cursor.execute("INSERT INTO status (name) VALUES (%s) ON CONFLICT (name) DO NOTHING", (status,))
 
 # Insert users and tasks
-for _ in range(10):
+user_ids = []
+for _ in range(20):
     fullname = fake.name()
     email = fake.email()
     cursor.execute("INSERT INTO users (fullname, email) VALUES (%s, %s) RETURNING id", (fullname, email))
     user_id = cursor.fetchone()[0]
+    user_ids.append(user_id)
 
+# Assign tasks to 15 users
+for user_id in user_ids[:15]:
     for i in range(5):
-        title = f"title {i}"
-        description = f"Description {i}"
+        title = fake.sentence(nb_words=3)
+        description = fake.text()
         status_id = fake.random_int(min=1, max=3)
         cursor.execute(
             "INSERT INTO tasks (title, description, status_id, user_id) VALUES (%s, %s, %s, %s)",
