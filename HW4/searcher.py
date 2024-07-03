@@ -57,11 +57,10 @@ def multiprocess_keyword_search(file_paths, keywords, num_processes):
     return merge_results(results_queue, num_processes)
 
 def main():
-    # Define the list of files to be processed and the keywords to be searched
-    file_paths = ['file1.txt', 'file2.txt', 'file3.txt']  # Replace with actual file paths
-    keywords = ['keyword1', 'keyword2', 'keyword3']  # Replace with actual keywords
-    num_workers = 2  # Number of threads/processes to use
-    method = 'threading'  # Change to 'multiprocessing' to use multiprocessing
+    file_paths = ['file1.txt', 'file2.txt', 'file3.txt']
+    keywords = ['keyword1', 'keyword2', 'keyword3']
+    num_workers = 2
+    method = 'multiprocessing'
 
     start_time = time.time()
 
