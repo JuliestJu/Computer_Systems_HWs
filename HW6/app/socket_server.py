@@ -3,34 +3,33 @@ import json
 from datetime import datetime
 from pymongo import MongoClient
 
-PORT = 5001
-
 # MongoDB setup
-client = MongoClient('mongodb://localhost:27017/')
-db = client['message_db']
+client = MongoClient('mongodb://mongodb:27017/')
+db = client['messages_db']
 collection = db['messages']
 
-def save_to_db(data):
-    data['date'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-    collection.insert_one(data)
+# Set up the server
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_socket.bind(('0.0.0.0', 5000))
+server_socket.listen(5)
 
-def start_socket_server():
-    server_address = ('localhost', PORT)
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind(server_address)
-    sock.listen(1)
-    
-    print('Socket server listening on port 5001')
-    
-    while True:
-        connection, client_address = sock.accept()
+print("Socket server listening on port 5000")
+
+while True:
+    client_socket, addr = server_socket.accept()
+    print(f"Connection from {addr}")
+
+    data = client_socket.recv(1024).decode('utf-8')
+    print(f"Received data: {data}")  # Log received data
+    if data:
         try:
-            data = connection.recv(1024)
-            if data:
-                message_data = json.loads(data.decode('utf-8').replace("'", '"'))
-                save_to_db(message_data)
-        finally:
-            connection.close()
-
-if __name__ == "__main__":
-    start_socket_server()
+            # Convert received data to dictionary and save to MongoDB
+            message_data = json.loads(data)
+            message_data['date'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+            collection.insert_one(message_data)
+            client_socket.sendall(b"Data received and saved")
+        except json.JSONDecodeError as e:
+            print(f"JSON decode error: {e}")  # Log JSON decode error
+            client_socket.sendall(b"Invalid JSON data")
+    
+    client_socket.close()

@@ -4,8 +4,6 @@ WORKDIR /app
 
 COPY ./app /app
 
-RUN pip3 install pymongo
+RUN pip install pymongo
 
-EXPOSE 3000
-
-CMD ["python", "main.py"]
+CMD ["python3", "main.py"]
