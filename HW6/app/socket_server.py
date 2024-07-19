@@ -3,6 +3,8 @@ import json
 from datetime import datetime
 from pymongo import MongoClient
 
+PORT = 5001
+
 # MongoDB setup
 client = MongoClient('mongodb://localhost:27017/')
 db = client['message_db']
@@ -13,7 +15,7 @@ def save_to_db(data):
     collection.insert_one(data)
 
 def start_socket_server():
-    server_address = ('localhost', 5001)
+    server_address = ('localhost', PORT)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.bind(server_address)
     sock.listen(1)
