@@ -1,60 +1,32 @@
+import http.server
+import socketserver
 import os
-from http.server import HTTPServer, SimpleHTTPRequestHandler
-from socketserver import ThreadingMixIn
-import urllib.parse as urlparse
-from urllib.parse import parse_qs
-import socket
+from urllib.parse import urlparse, unquote
 
-class CustomHandler(SimpleHTTPRequestHandler):
+PORT = 3001
+
+class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
-        if self.path == "/":
-            self.path = "/templates/index.html"
-        elif self.path == "/message.html":
-            self.path = "/templates/message.html"
-        elif self.path == "/style.css":
-            self.path = "/static/style.css"
-        elif self.path == "/logo.png":
-            self.path = "/static/logo.png"
+        parsed_path = urlparse(self.path)
+        if parsed_path.path == '/':
+            self.path = '/templates/index.html'
+        elif parsed_path.path == '/message':
+            self.path = '/templates/message.html'
+        elif parsed_path.path.startswith('/static'):
+            self.path = parsed_path.path
         else:
-            self.path = "/templates/error.html"
-            self.send_response(404)
-        return super().do_GET()
+            self.path = '/templates/error.html'
+        return http.server.SimpleHTTPRequestHandler.do_GET(self)
 
-    def do_POST(self):
-        if self.path == "/message":
-            content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length)
-            parsed_data = parse_qs(post_data.decode('utf-8'))
+    def log_message(self, format, *args):
+        return  # Suppress logging
 
-            message_data = {
-                "username": parsed_data["username"][0],
-                "message": parsed_data["message"][0]
-            }
-            
-            # Send data to socket server
-            self.send_to_socket_server(message_data)
-            
-            self.send_response(302)
-            self.send_header('Location', '/')
-            self.end_headers()
-        else:
-            self.send_response(404)
-            self.end_headers()
-
-    def send_to_socket_server(self, data):
-        server_address = ('localhost', 5001)
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            sock.connect(server_address)
-            sock.sendall(str(data).encode('utf-8'))
-
-class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
-    """Handle requests in a separate thread."""
-
-def run(server_class=ThreadedHTTPServer, handler_class=CustomHandler, port=3000):
-    server_address = ('', port)
+def run(server_class=http.server.HTTPServer, handler_class=MyHTTPRequestHandler):
+    os.chdir('app')  # Change working directory to app to serve files correctly
+    server_address = ('', PORT)
     httpd = server_class(server_address, handler_class)
-    print(f'Starting httpd server on port {port}')
+    print(f'Serving HTTP on port {PORT}')
     httpd.serve_forever()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     run()

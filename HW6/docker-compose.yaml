@@ -1,0 +1,29 @@
+version: '3'
+services:
+  http-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongodb
+
+  socket-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.socket
+    ports:
+      - "5001:5001"
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
