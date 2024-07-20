@@ -10,10 +10,10 @@ collection = db['messages']
 
 # Set up the server
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_socket.bind(('0.0.0.0', 5000))
+server_socket.bind(('0.0.0.0', 5001))
 server_socket.listen(5)
 
-print("Socket server listening on port 5000")
+print("Socket server listening on port 5001")
 
 while True:
     client_socket, addr = server_socket.accept()

@@ -6,7 +6,7 @@ import json
 import socket
 
 PORT = 3000
-SOCKET_SERVER_HOST = 'localhost'
+SOCKET_SERVER_HOST = 'socket-server'
 SOCKET_SERVER_PORT = 5001
 
 class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
