@@ -18,14 +18,15 @@ def start_socket_server():
 
     while True:
         client_socket, addr = server_socket.accept()
-        print(f"Connection from {addr}")
+        print(f"Connection from {addr}", flush=True)
 
         data = client_socket.recv(1024).decode('utf-8')
-        print(f"Received data: {data}")
+        print(f"Received data: {data}", flush=True)
         if data:
             try:
                 message_data = json.loads(data)
                 message_data['date'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+                print(message_data, flush=True)
                 collection.insert_one(message_data)
                 client_socket.sendall(b"Data received and saved")
             except json.JSONDecodeError as e:
@@ -35,5 +36,4 @@ def start_socket_server():
         client_socket.close()
 
 if __name__ == '__main__':
-    print("socket up", flush=True)
     start_socket_server()

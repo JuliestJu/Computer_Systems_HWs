@@ -8,7 +8,7 @@ import multiprocessing
 from socket_server import start_socket_server
 
 PORT = 3000
-SOCKET_SERVER_HOST = 'localhost'
+SOCKET_SERVER_HOST = 'socket-server'
 SOCKET_SERVER_PORT = 5001
 
 class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
@@ -23,7 +23,6 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.path = parsed_path.path
         else:
             self.path = '/templates/error.html'
-        print(f"Serving file: {self.path}", flush=True)
         return http.server.SimpleHTTPRequestHandler.do_GET(self)
 
     def do_POST(self):
@@ -31,9 +30,6 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
             data = {k: v for k, v in [qc.split("=") for qc in post_data.decode().split("&")]}
-            
-            # Log the data being sent to the socket server
-            print(f"Data to be sent to socket server: {data}", flush=True)
             
             # Send data to socket server
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -57,14 +53,11 @@ def run_http_server():
     httpd.serve_forever()
 
 if __name__ == '__main__':
-    # Create processes for the HTTP server and socket server
     http_server_process = multiprocessing.Process(target=run_http_server)
     socket_server_process = multiprocessing.Process(target=start_socket_server)  # Call the socket server function
 
-    # Start the processes
     http_server_process.start()
     socket_server_process.start()
 
-    # Wait for the processes to complete
     http_server_process.join()
     socket_server_process.join()
