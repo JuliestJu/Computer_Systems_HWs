@@ -4,15 +4,17 @@ import os
 from urllib.parse import urlparse, unquote
 import json
 import socket
+import multiprocessing
+from socket_server import start_socket_server
 
 PORT = 3000
-SOCKET_SERVER_HOST = 'socket-server'
+SOCKET_SERVER_HOST = 'localhost'
 SOCKET_SERVER_PORT = 5001
 
 class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         parsed_path = urlparse(self.path)
-        print(f"Requested path: {parsed_path.path}", flush=True)  # Debugging statement
+        print(f"Requested path: {parsed_path.path}", flush=True)
         if parsed_path.path == '/':
             self.path = '/templates/index.html'
         elif parsed_path.path == '/message':
@@ -21,7 +23,7 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.path = parsed_path.path
         else:
             self.path = '/templates/error.html'
-        print(f"Serving file: {self.path}", flush=True)  # Debugging statement
+        print(f"Serving file: {self.path}", flush=True)
         return http.server.SimpleHTTPRequestHandler.do_GET(self)
 
     def do_POST(self):
@@ -48,11 +50,21 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, format, *args):
         return
 
-def run(server_class=http.server.HTTPServer, handler_class=MyHTTPRequestHandler):
+def run_http_server():
     server_address = ('', PORT)
-    httpd = server_class(server_address, handler_class)
+    httpd = http.server.HTTPServer(server_address, MyHTTPRequestHandler)
     print(f'Serving HTTP on port {PORT}', flush=True)
     httpd.serve_forever()
 
 if __name__ == '__main__':
-    run()
+    # Create processes for the HTTP server and socket server
+    http_server_process = multiprocessing.Process(target=run_http_server)
+    socket_server_process = multiprocessing.Process(target=start_socket_server)  # Call the socket server function
+
+    # Start the processes
+    http_server_process.start()
+    socket_server_process.start()
+
+    # Wait for the processes to complete
+    http_server_process.join()
+    socket_server_process.join()
