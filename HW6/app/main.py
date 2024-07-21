@@ -46,7 +46,7 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(b"Message sent successfully")
 
     def log_message(self, format, *args):
-        return  # Suppress logging
+        return
 
 def run(server_class=http.server.HTTPServer, handler_class=MyHTTPRequestHandler):
     server_address = ('', PORT)
